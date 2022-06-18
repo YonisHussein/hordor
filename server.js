@@ -2,8 +2,6 @@ const fs = require('fs');
 const path = require('path');
 
 const express = require('express');
-const { parse } = require('path');
-const { json } = require('body-parser');
 const app = express();
 
 app.use(express.urlencoded({extended:true}))
@@ -25,24 +23,38 @@ app.get('*', (req, res) => {
 });
 
 app.post("/api/notes", (req, res) => {
-    req.body.id = uuid();
-    const newNotes = req.body
+    console.info(`${req.method} request recieved to add a new note`)
+    const {title, text} = req.body;
+    if(titles&&text){
+        const newNote = {
+            title,
+            text,
+        };
+        fs.readFile('./db/dbjson', 'utf8', (err,data) => {
+            if(err){
+                console.error(err);
+            }
+            else{
+                const parsedNote = JSON.parse(data);
+                parsedNote.push(newNote);
+
+                fs.writeFile(
+                    './db/db.json',
+                    JSON.stringify(parsedNote),
+                    (writeErr) =>
+                    writeErr
+                    ?console.error(writeErr)
+                    :console.info('Successfully updated notes!')
+
+                );
+            };
+        });
+    };
 });
-
-fs.readFile('./db /db.json', 'utf-8', (err, data) => {
-    if(err) {
-        console.error(err);
-    }
-    else {
-        const parsedNotes = JSON.parse(data);
-        parsedNotes.push(newnote);
-        fs.writeFile('./db/db.json', JSON.stringify(parsedNotes, null, 4))
-    }
-    res.sendFile(path.join(__dirname, 'public/notes.html'));
-
-});
-
-
+const response = {
+    status:'success',
+    data:req.body,
+};
 
 
 
